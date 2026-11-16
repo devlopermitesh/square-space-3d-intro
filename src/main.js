@@ -19,6 +19,7 @@ const params = new URLSearchParams(window.location.search);
 const preview = params.has('preview');
 const debug = params.has('debug');
 const bridge = createWixBridge();
+const REDIRECT_URL = 'https://www.ahadesign.in/';
 
 let renderer, scene, camera, timeline, building, cameraController;
 let rafId = 0;
@@ -29,6 +30,16 @@ let failSafeId;
 
 function showFallback() {
   if (fallbackEl) fallbackEl.hidden = false;
+}
+
+function navigateToSite() {
+  try {
+    if (window.top && window.top !== window) {
+      window.top.location.href = REDIRECT_URL;
+      return;
+    }
+  } catch (_) {}
+  window.location.href = REDIRECT_URL;
 }
 
 function updateProgress(time, duration) {
@@ -122,7 +133,10 @@ function init() {
       bridge.send('complete');
       finished = true;
       clearTimeout(failSafeId);
-      setTimeout(() => cleanup(), 200);
+      setTimeout(() => {
+        cleanup();
+        navigateToSite();
+      }, 200);
     },
   });
 
@@ -133,7 +147,10 @@ function init() {
     timeline?.progress(1);
     timeline?.pause();
     bridge.send('skip');
-    setTimeout(() => cleanup(), 100);
+    setTimeout(() => {
+      cleanup();
+      navigateToSite();
+    }, 100);
   }, { once: true });
 
   window.addEventListener('resize', onResize);
